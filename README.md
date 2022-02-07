@@ -43,6 +43,10 @@ The preferred installation method is to simply save the `git-trim` script somewh
 npm install --global git-trim
 ```
 
+## Disclaimer
+Some of the options in this command remove branches without warning. Once a branch is removed, it might not be recoverable. You are entirely responsible when running this command.
+
+
 ## Credits
 There are thousands of commands and aliases for cleaning up branches sprinkled across the internet. I'll specifically link the commands and posts shared in [this Twitter thread](https://twitter.com/gonedark/status/1486721735621677068), [another project](https://github.com/foriequal0/git-trim) for inspiring the name, and [git-open](https://github.com/paulirish/git-open) which I used as a code reference.
 
