@@ -52,7 +52,7 @@ npm install --global git-trim
 #### [Oh-My-Zsh](http://ohmyz.sh/)
 
 1. `git clone https://github.com/jasonmccreary/git-trim.git $ZSH_CUSTOM/plugins/git-trim`
-1. Add `git-trim` to your plugin list - edit `~/.zshrc` and change
+2. Add `git-trim` to your plugin list - edit `~/.zshrc` and change
    `plugins=(...)` to `plugins=(... git-trim)`
 
 ## Disclaimer
