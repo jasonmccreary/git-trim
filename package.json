@@ -1,0 +1,28 @@
+{
+  "name": "git-trim",
+  "version": "0.1.0",
+  "description": "Quickly remove merged, pruned, untracked, or stale branches within a repository.",
+  "author": "Jason McCreary (https://jasonmccreary.me/)",
+  "license": "MIT",
+  "homepage": "https://github.com/jasonmccreary/git-trim",
+  "bugs": {
+    "url": "https://github.com/jasonmccreary/git-trim/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jasonmccreary/git-trim.git"
+  },
+  "keywords": [
+    "git",
+    "cli"
+  ],
+  "engines": {
+    "node": ">=0.10.3",
+    "npm": ">=2.0.0"
+  },
+  "preferGlobal": true,
+  "bin": {
+    "git-trim": "git-trim",
+  },
+  "dependencies": {}
+}
