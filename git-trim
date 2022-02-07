@@ -1,0 +1,208 @@
+#!/usr/bin/env bash
+
+# Use git-sh-setup, similar to git-recommand
+# https://www.kernel.org/pub/software/scm/git/docs/git-sh-setup.html
+OPTIONS_STUCKLONG=true
+OPTIONS_SPEC="\
+git trim [options]
+
+Removes merged, pruned, untracked, and stale branches within a repository.
+https://github.com/jasonmccreary/git-trim/
+--
+  Available options are:
+a,all!            remove all local branches, except the current branch
+m,merged!         remove local branches already merged into the current branch
+p,pruned!         remove local branches where its remote branch no longer exists
+s,stale!          remove local branches without commits in the last 3 months
+u,untracked!      remove local branches not tracking a remote branch
+t,tracked!        remove the tracking branch from remote
+r,remote!         remove remote branches instead of local branches
+"
+
+SUBDIRECTORY_OK='Yes' . "$(git --exec-path)/git-sh-setup"
+
+
+prune_all() {
+  git fetch --all -p > /dev/null 2>&1
+}
+
+remove_tracking_branch() {
+  remote=$(git config "branch.$branch.remote")
+
+  if [ -z $remote ]; then
+    return
+  fi
+
+  upstream_branch_full_name=$(git config "branch.$branch.merge")
+  upstream_branch=${upstream_branch_full_name#"refs/heads/"}
+
+  remove_remote_branch $remote $upstream_branch
+}
+
+remove_remote_branch() {
+  git push -d $1 $2 > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    echo "Deleted branch $2 (on $1)."
+  fi
+}
+
+
+# Defaults
+all=0
+merged=0
+pruned=0
+stale=0
+tracked=0
+untracked=0
+remote=0
+current_branch=$(git symbolic-ref -q --short HEAD)
+[ $# != 1 ] || pruned=1
+
+
+# Parse options
+while [ $# != 0 ]; do
+  case "$1" in
+  --all) all=1;;
+  --stale) stale=1;;
+  --merged) merged=1;;
+  --pruned) pruned=1;;
+  --tracked) tracked=1;;
+  --untracked) untracked=1;;
+  --remote) remote=1;;
+  --) ;;
+  *) remotes+=($1);;
+  esac
+  shift
+done
+
+
+# all
+if [ $all -eq 1 ]; then
+  while true; do
+    read -p "Are you sure you want to remove all branches? " choice
+    case $(echo $choice | tr '[A-Z]' '[a-z]') in
+      y|yes) break;;
+      *) exit;;
+    esac
+  done
+
+  command='git branch'
+  if [ $remote -eq 1 ]; then
+    prune_all
+    command="$command -a"
+  fi
+
+  branches=( $($command | grep -vF $current_branch) )
+
+  if [ ${#branches} -eq 0 ]; then
+    echo "No branches need to be trimmed."
+    exit 0
+  fi
+
+  for branch in "${branches[@]}"; do
+    if [ $remote -eq 1 ]; then
+      if [ "${branch:0:8}" == "remotes/" ]; then
+        name="${branch:8}"
+        remove_remote_branch ${name%/*} ${name#*/}
+      fi
+    else
+      git branch -D $branch
+
+      if [ $tracked -eq 1 ]; then
+        remove_tracking_branch $branch
+      fi
+    fi
+  done
+fi
+
+
+# merged
+if [ $merged -eq 1 ]; then
+  command='git branch'
+  if [ $remote -eq 1 ]; then
+    prune_all
+    command="$command -r"
+  fi
+
+  branches=( $($command --merged | grep -vF $current_branch ) )
+
+  if [ ${#branches} -eq 0 ]; then
+    echo "There are no merged branches to trim."
+    exit 0
+  fi
+
+  for branch in "${branches[@]}"; do
+    if [ $remote -eq 1 ]; then
+      remove_remote_branch ${branch%/*} ${branch#*/}
+    else
+      git branch -d $branch
+
+      if [ $tracked -eq 1 ]; then
+        remove_tracking_branch $branch
+      fi
+    fi
+  done
+fi
+
+
+# pruned
+if [ $pruned -eq 1 ]; then
+  prune_all
+  branches=( $(LANG=C git branch -vv | awk '/: gone]/{print $1}') )
+
+  if [ ${#branches} -eq 0 ]; then
+    echo "There are no local branches to trim."
+    exit 0
+  fi
+
+  for branch in "${branches[@]}"; do
+    git branch -D $branch
+  done
+fi
+
+
+# stale
+if [ $stale -eq 1 ]; then
+  command='git branch'
+  if [ $remote -eq 1 ]; then
+    prune_all
+    command="$command -r"
+  fi
+
+  branches=( $($command | grep -v "^\*") )
+
+  if [ ${#branches} -eq 0 ]; then
+    echo "There are no stale branches to trim."
+    exit 0
+  fi
+
+  for branch in "${branches[@]}"; do
+    if [ -z $(git log -1 -s --since="3 months ago" $branch) ]; then
+      if [ $remote -eq 1 ]; then
+        remove_remote_branch ${branch%/*} ${branch#*/}
+      else
+        git branch -D $branch
+      fi
+    fi
+  done
+fi
+
+
+# untracked
+if [ $untracked -eq 1 ]; then
+  branches=( $(git branch --format='%(if)%(upstream)%(then)%(else)%(refname:short)%(end)' | awk NF) )
+
+  if [ ${#branches} -eq 0 ]; then
+    echo "There are no untracked branches to trim."
+    exit 0
+  fi
+
+  for branch in "${branches[@]}"; do
+    if [ "$branch" != "$current_branch" ]; then
+      git branch -D $branch
+    fi
+  done
+fi
+
+
+exit 0
