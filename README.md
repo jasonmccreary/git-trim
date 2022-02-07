@@ -1,9 +1,7 @@
 # git trim
-
 A command to quickly remove merged, pruned, untracked, or stale branches within a repository.
 
 ## Usage
-
 ```sh
 git trim
 git trim --pruned
@@ -38,11 +36,9 @@ When the `--remote` (or `-r`) option is used, `git trim` will remove remote bran
 ## Installation
 
 ### Basic install
-
 The preferred installation method is to simply save the `git-trim` script somewhere included in your path. For example, copy `git-trim` into an existing included path like `/usr/local/bin`, or add the parent directory to your `PATH` environment.
 
 ### Install via NPM
-
 ```sh
 npm install --global git-trim
 ```
@@ -56,17 +52,13 @@ npm install --global git-trim
    `plugins=(...)` to `plugins=(... git-trim)`
 
 ## Disclaimer
-
 Some of the options in this command remove branches without warning. Once a branch is removed, it might not be recoverable. You are entirely responsible when running this command.
 
 ## Credits
-
 There are thousands of commands and aliases for cleaning up branches sprinkled across the internet. I'll specifically link the commands and posts shared in [this Twitter thread](https://twitter.com/gonedark/status/1486721735621677068), [another project](https://github.com/foriequal0/git-trim) for inspiring the name, and [git-open](https://github.com/paulirish/git-open) which I used as a code reference.
 
 ## Contributing
-
 Feel free to open an issue or pull request to help contribute to the project. Currently the only code style requirement is an indentation of 2 spaces.
 
 ## License
-
 Copyright [Jason McCreary](https://github.com/jasonmccreary/). Licensed under [MIT](http://opensource.org/licenses/MIT).
