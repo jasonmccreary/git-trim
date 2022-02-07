@@ -22,7 +22,7 @@
   },
   "preferGlobal": true,
   "bin": {
-    "git-trim": "git-trim",
+    "git-trim": "git-trim"
   },
   "dependencies": {}
 }
