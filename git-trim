@@ -58,7 +58,7 @@ prune_all() {
 remove_tracking_branch() {
   local remote=$(git config "branch.${1}.remote")
 
-  if [ -z $remote ]; then
+  if [ -z "$remote" ]; then
     return
   fi
 
@@ -168,11 +168,11 @@ if [ $merged -eq 1 ]; then
     if [ $remote -eq 1 ]; then
       remove_remote_branch ${branch%/*} ${branch#*/}
     else
-      git branch -d $branch
-
       if [ $tracked -eq 1 ]; then
         remove_tracking_branch $branch
       fi
+
+      git branch -d $branch
     fi
   done
 fi
