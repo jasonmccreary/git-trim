@@ -283,7 +283,7 @@ if [ -n "$reset" ]; then
   fi
 
   for branch in "${branches[@]}"; do
-    git branch -D $branch
+    remove_local_branch $branch
   done
 fi
 
