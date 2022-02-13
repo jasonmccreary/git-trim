@@ -17,8 +17,8 @@ s,stale!          remove local branches without commits in the last 3 months
 u,untracked!      remove local branches not tracking a remote branch
 t,tracked!        remove the tracking branch from remote
 r,remote!         remove remote branches instead of local branches
+dry!              prints branches to output instead of deleting theme
 reset=?           remove all local branches except those existing on remote (default: origin)
-dry!            prints branches to output instead of deleting theme
 "
 
 SUBDIRECTORY_OK='Yes' . "$(git --exec-path)/git-sh-setup"
