@@ -103,17 +103,17 @@ current_branch=$(git symbolic-ref -q --short HEAD)
 # Parse options
 while [ $# != 0 ]; do
   case "$1" in
-  --all) all=1;;
-  --dry-run) dry_run=1;;
-  --merged) merged=1;;
-  --pruned) pruned=1;;
-  --remote) remote=1;;
-  --stale) stale=1;;
-  --tracked) tracked=1;;
-  --untracked) untracked=1;;
-  --reset=*) reset="${1#*=}";;
-  --reset) reset='origin';;
-  --);;
+    --all) all=1;;
+    --dry-run) dry_run=1;;
+    --merged) merged=1;;
+    --pruned) pruned=1;;
+    --remote) remote=1;;
+    --stale) stale=1;;
+    --tracked) tracked=1;;
+    --untracked) untracked=1;;
+    --reset=*) reset="${1#*=}";;
+    --reset) reset='origin';;
+    --) ;;
   esac
   shift
 done
@@ -253,12 +253,12 @@ if [ -n "$reset" ]; then
   while true; do
     read -p "Are you sure you want to remove all local branches not on $reset? " choice
     case $(echo $choice | tr '[A-Z]' '[a-z]') in
-    y | yes) break ;;
-    *) exit ;;
+      y|yes) break;;
+      *) exit;;
     esac
   done
 
-  git fetch -p $reset >/dev/null 2>&1
+  git fetch -p $reset > /dev/null 2>&1
 
   remote_branches=( $(git ls-remote --heads origin | cut -f 2) )
   local_branches=( $(git branch | grep -vF $current_branch) )
@@ -268,7 +268,7 @@ if [ -n "$reset" ]; then
     [[ ! " ${remote_branches[*]} " =~ " refs/heads/${branch} " ]] && branches+=($branch)
   done
 
-  branches=($(filter_branches "${branches[@]}"))
+  branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
     echo "No branches need to be trimmed."
