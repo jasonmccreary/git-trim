@@ -137,7 +137,7 @@ if [ $all -eq 1 ]; then
     command="$command -a"
   fi
 
-  branches=( $($command | grep -vF $current_branch ) )
+  branches=( $($command | grep -vF $current_branch) )
   branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
@@ -170,7 +170,7 @@ if [ $merged -eq 1 ]; then
     command="$command -r"
   fi
 
-  branches=( $($command --merged | grep -vF $current_branch) )
+  branches=( $($command --merged | grep -vF $current_branch ) )
   branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
@@ -182,7 +182,6 @@ if [ $merged -eq 1 ]; then
     if [ $remote -eq 1 ]; then
       remove_remote_branch ${branch%/*} ${branch#*/}
     else
-
       if [ $tracked -eq 1 ]; then
         remove_tracking_branch $branch
       fi
