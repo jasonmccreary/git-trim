@@ -17,6 +17,7 @@ s,stale!          remove local branches without commits in the last 3 months
 u,untracked!      remove local branches not tracking a remote branch
 t,tracked!        remove the tracking branch from remote
 r,remote!         remove remote branches instead of local branches
+reset=?           remove all local branches except those existing on remote (default: origin)
 "
 
 SUBDIRECTORY_OK='Yes' . "$(git --exec-path)/git-sh-setup"
@@ -55,6 +56,7 @@ stale=0
 tracked=0
 untracked=0
 remote=0
+reset=''
 current_branch=$(git symbolic-ref -q --short HEAD)
 [ $# != 1 ] || pruned=1
 
@@ -69,8 +71,9 @@ while [ $# != 0 ]; do
   --tracked) tracked=1;;
   --untracked) untracked=1;;
   --remote) remote=1;;
+  --reset=*) reset="${1#*=}";;
+  --reset) reset='origin';;
   --) ;;
-  *) remotes+=($1);;
   esac
   shift
 done
@@ -201,6 +204,37 @@ if [ $untracked -eq 1 ]; then
     if [ "$branch" != "$current_branch" ]; then
       git branch -D $branch
     fi
+  done
+fi
+
+
+# reset
+if [ -n $reset ]; then
+  while true; do
+    read -p "Are you sure you want to remove all local branches not on $reset? " choice
+    case $(echo $choice | tr '[A-Z]' '[a-z]') in
+      y|yes) break;;
+      *) exit;;
+    esac
+  done
+
+  git fetch -p $reset > /dev/null 2>&1
+
+  remote_branches=( $(git ls-remote --heads origin | cut -f 2) )
+  local_branches=( $(git branch | grep -vF $current_branch) )
+  branches=()
+
+  for branch in "${local_branches[@]}"; do
+      [[ ! " ${remote_branches[*]} " =~ " refs/heads/${branch} " ]] && branches+=($branch)
+  done
+
+  if [ ${#branches} -eq 0 ]; then
+    echo "No branches need to be trimmed."
+    exit 0
+  fi
+
+  for branch in "${branches[@]}"; do
+    git branch -D $branch
   done
 fi
 

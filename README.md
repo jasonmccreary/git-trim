@@ -20,6 +20,9 @@ git trim --untracked
 git trim -u
     # Removes local branches not tracking a remote branch
 
+git trim --reset[=remote]
+    # Removes all local branches except those existing on remote which defaults to "origin" (requires confirmation)
+
 git trim --all
 git trim -a
     # Removes all local branches except the current branch (requires confirmation)
