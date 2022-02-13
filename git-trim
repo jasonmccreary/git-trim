@@ -11,52 +11,21 @@ https://github.com/jasonmccreary/git-trim/
 --
   Available options are:
 all!              remove all local branches, except the current branch
+dry-run!          prints branches to output instead of deleting theme
 m,merged!         remove local branches already merged into the current branch
 p,pruned!         remove local branches where its remote branch no longer exists
-s,stale!          remove local branches without commits in the last 3 months
-u,untracked!      remove local branches not tracking a remote branch
-t,tracked!        remove the tracking branch from remote
 r,remote!         remove remote branches instead of local branches
-dry-run!          prints branches to output instead of deleting theme
 reset=?           remove all local branches except those existing on remote (default: origin)
+s,stale!          remove local branches without commits in the last 3 months
+t,tracked!        remove the tracking branch from remote
+u,untracked!      remove local branches not tracking a remote branch
 "
 
 SUBDIRECTORY_OK='Yes' . "$(git --exec-path)/git-sh-setup"
 
-# Defaults
-all=0
-merged=0
-pruned=0
-stale=0
-tracked=0
-untracked=0
-remote=0
-reset=''
-dry_run=0
-current_branch=$(git symbolic-ref -q --short HEAD)
-[ $# != 1 ] || pruned=1
-
-# Parse options
-while [ $# != 0 ]; do
-  case "$1" in
-  --all) all=1;;
-  --stale) stale=1;;
-  --merged) merged=1;;
-  --pruned) pruned=1;;
-  --tracked) tracked=1;;
-  --untracked) untracked=1;;
-  --remote) remote=1;;
-  --reset=*) reset="${1#*=}";;
-  --reset) reset='origin';;
-  --dry-run) dry_run=1;;
-  --) ;;
-  esac
-  shift
-done
-
 # Functions
 filter_branches() {
-  local exclude=( $(git config gt.exclude) )
+  local exclude=($(git config gt.exclude))
 
   if [ ${#exclude} -eq 0 ]; then
     echo "$@"
@@ -83,7 +52,7 @@ filter_branches() {
 }
 
 prune_all() {
-  git fetch --all -p > /dev/null 2>&1
+  git fetch --all -p >/dev/null 2>&1
 }
 
 remove_tracking_branch() {
@@ -100,27 +69,62 @@ remove_tracking_branch() {
 }
 
 remove_remote_branch() {
-  git push -d $1 $2 > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
-    echo "Deleted branch $2 (on $1)."
+  if [ $dry_run -eq 1 ]; then
+    echo "$2 (on $1) will be trimmed."
+  else
+    git push -d $1 $2 >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      echo "Deleted branch $2 (on $1)."
+    fi
   fi
 }
 
 remove_local_branch() {
-  if [ $dry -eq 1 ]; then
-    echo "${$1} will be trimmed."
+  if [ $dry_run -eq 1 ]; then
+    echo "$1 will be trimmed."
   else
     git branch -D $1
   fi
 }
+
+# Defaults
+all=0
+dry_run=0
+merged=0
+pruned=0
+remote=0
+reset=''
+stale=0
+tracked=0
+untracked=0
+current_branch=$(git symbolic-ref -q --short HEAD)
+[ $# != 1 ] || pruned=1
+
+# Parse options
+while [ $# != 0 ]; do
+  case "$1" in
+  --all) all=1 ;;
+  --stale) stale=1 ;;
+  --merged) merged=1 ;;
+  --pruned) pruned=1 ;;
+  --tracked) tracked=1 ;;
+  --untracked) untracked=1 ;;
+  --remote) remote=1 ;;
+  --reset=*) reset="${1#*=}" ;;
+  --reset) reset='origin' ;;
+  --dry-run) dry_run=1 ;;
+  --) ;;
+  esac
+  shift
+done
 
 # all
 if [ $all -eq 1 ]; then
   while true; do
     read -p "Are you sure you want to remove all branches? " choice
     case $(echo $choice | tr '[A-Z]' '[a-z]') in
-      y|yes) break;;
-      *) exit;;
+    y | yes) break ;;
+    *) exit ;;
     esac
   done
 
@@ -130,8 +134,8 @@ if [ $all -eq 1 ]; then
     command="$command -a"
   fi
 
-  branches=( $($command | grep -vF $current_branch) )
-  branches=( $(filter_branches "${branches[@]}") )
+  branches=($($command | grep -vF $current_branch))
+  branches=($(filter_branches "${branches[@]}"))
 
   if [ ${#branches} -eq 0 ]; then
     echo "No branches need to be trimmed."
@@ -154,7 +158,6 @@ if [ $all -eq 1 ]; then
   done
 fi
 
-
 # merged
 if [ $merged -eq 1 ]; then
   command='git branch'
@@ -163,8 +166,8 @@ if [ $merged -eq 1 ]; then
     command="$command -r"
   fi
 
-  branches=( $($command --merged | grep -vF $current_branch ) )
-  branches=( $(filter_branches "${branches[@]}") )
+  branches=($($command --merged | grep -vF $current_branch))
+  branches=($(filter_branches "${branches[@]}"))
 
   if [ ${#branches} -eq 0 ]; then
     echo "There are no merged branches to trim."
@@ -175,7 +178,7 @@ if [ $merged -eq 1 ]; then
     if [ $remote -eq 1 ]; then
       remove_remote_branch ${branch%/*} ${branch#*/}
     else
-      
+
       if [ $tracked -eq 1 ]; then
         remove_tracking_branch $branch
       fi
@@ -185,12 +188,11 @@ if [ $merged -eq 1 ]; then
   done
 fi
 
-
 # pruned
 if [ $pruned -eq 1 ]; then
   prune_all
-  branches=( $(LANG=C git branch -vv | awk '/: gone]/{print $1}') )
-  branches=( $(filter_branches "${branches[@]}") )
+  branches=($(LANG=C git branch -vv | awk '/: gone]/{print $1}'))
+  branches=($(filter_branches "${branches[@]}"))
 
   if [ ${#branches} -eq 0 ]; then
     echo "There are no local branches to trim."
@@ -202,7 +204,6 @@ if [ $pruned -eq 1 ]; then
   done
 fi
 
-
 # stale
 if [ $stale -eq 1 ]; then
   command='git branch'
@@ -211,8 +212,8 @@ if [ $stale -eq 1 ]; then
     command="$command -r"
   fi
 
-  branches=( $($command | grep -v "^\*") )
-  branches=( $(filter_branches "${branches[@]}") )
+  branches=($($command | grep -v "^\*"))
+  branches=($(filter_branches "${branches[@]}"))
 
   if [ ${#branches} -eq 0 ]; then
     echo "There are no stale branches to trim."
@@ -230,11 +231,10 @@ if [ $stale -eq 1 ]; then
   done
 fi
 
-
 # untracked
 if [ $untracked -eq 1 ]; then
-  branches=( $(git branch --format='%(if)%(upstream)%(then)%(else)%(refname:short)%(end)' | awk NF) )
-  branches=( $(filter_branches "${branches[@]}") )
+  branches=($(git branch --format='%(if)%(upstream)%(then)%(else)%(refname:short)%(end)' | awk NF))
+  branches=($(filter_branches "${branches[@]}"))
 
   if [ ${#branches} -eq 0 ]; then
     echo "There are no untracked branches to trim."
@@ -248,28 +248,27 @@ if [ $untracked -eq 1 ]; then
   done
 fi
 
-
 # reset
 if [ -n "$reset" ]; then
   while true; do
     read -p "Are you sure you want to remove all local branches not on $reset? " choice
     case $(echo $choice | tr '[A-Z]' '[a-z]') in
-      y|yes) break;;
-      *) exit;;
+    y | yes) break ;;
+    *) exit ;;
     esac
   done
 
-  git fetch -p $reset > /dev/null 2>&1
+  git fetch -p $reset >/dev/null 2>&1
 
-  remote_branches=( $(git ls-remote --heads origin | cut -f 2) )
-  local_branches=( $(git branch | grep -vF $current_branch) )
+  remote_branches=($(git ls-remote --heads origin | cut -f 2))
+  local_branches=($(git branch | grep -vF $current_branch))
   branches=()
 
   for branch in "${local_branches[@]}"; do
     [[ ! " ${remote_branches[*]} " =~ " refs/heads/${branch} " ]] && branches+=($branch)
   done
 
-  branches=( $(filter_branches "${branches[@]}") )
+  branches=($(filter_branches "${branches[@]}"))
 
   if [ ${#branches} -eq 0 ]; then
     echo "No branches need to be trimmed."
@@ -280,6 +279,5 @@ if [ -n "$reset" ]; then
     git branch -D $branch
   done
 fi
-
 
 exit 0
