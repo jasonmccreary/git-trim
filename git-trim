@@ -100,6 +100,7 @@ untracked=0
 current_branch=$(git symbolic-ref -q --short HEAD)
 [ $# != 1 ] || pruned=1
 
+
 # Parse options
 while [ $# != 0 ]; do
   case "$1" in
@@ -117,6 +118,7 @@ while [ $# != 0 ]; do
   esac
   shift
 done
+
 
 # all
 if [ $all -eq 1 ]; then
@@ -158,6 +160,7 @@ if [ $all -eq 1 ]; then
   done
 fi
 
+
 # merged
 if [ $merged -eq 1 ]; then
   command='git branch'
@@ -188,6 +191,7 @@ if [ $merged -eq 1 ]; then
   done
 fi
 
+
 # pruned
 if [ $pruned -eq 1 ]; then
   prune_all
@@ -203,6 +207,7 @@ if [ $pruned -eq 1 ]; then
     remove_local_branch $branch
   done
 fi
+
 
 # stale
 if [ $stale -eq 1 ]; then
@@ -231,6 +236,7 @@ if [ $stale -eq 1 ]; then
   done
 fi
 
+
 # untracked
 if [ $untracked -eq 1 ]; then
   branches=( $(git branch --format='%(if)%(upstream)%(then)%(else)%(refname:short)%(end)' | awk NF) )
@@ -247,6 +253,7 @@ if [ $untracked -eq 1 ]; then
     fi
   done
 fi
+
 
 # reset
 if [ -n "$reset" ]; then
