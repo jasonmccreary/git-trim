@@ -17,7 +17,7 @@ s,stale!          remove local branches without commits in the last 3 months
 u,untracked!      remove local branches not tracking a remote branch
 t,tracked!        remove the tracking branch from remote
 r,remote!         remove remote branches instead of local branches
-dry!              prints branches to output instead of deleting theme
+dry-run!          prints branches to output instead of deleting theme
 reset=?           remove all local branches except those existing on remote (default: origin)
 "
 
@@ -32,7 +32,7 @@ tracked=0
 untracked=0
 remote=0
 reset=''
-dry=0
+dry_run=0
 current_branch=$(git symbolic-ref -q --short HEAD)
 [ $# != 1 ] || pruned=1
 
@@ -48,7 +48,7 @@ while [ $# != 0 ]; do
   --remote) remote=1;;
   --reset=*) reset="${1#*=}";;
   --reset) reset='origin';;
-  --dry) dry=1;;
+  --dry-run) dry_run=1;;
   --) ;;
   esac
   shift
