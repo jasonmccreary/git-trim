@@ -25,14 +25,14 @@ SUBDIRECTORY_OK='Yes' . "$(git --exec-path)/git-sh-setup"
 
 # Functions
 filter_branches() {
-  exclude=( $(git config gt.exclude) )
+  local exclude=( $(git config gt.exclude) )
 
   if [ ${#exclude} -eq 0 ]; then
     echo "$@"
     return
   fi
 
-  branches=()
+  local branches=()
 
   for branch in "$@"; do
     if [ $remote -eq 1 ]; then
@@ -56,14 +56,14 @@ prune_all() {
 }
 
 remove_tracking_branch() {
-  remote=$(git config "branch.$1.remote")
+  local remote=$(git config "branch.${1}.remote")
 
   if [ -z $remote ]; then
     return
   fi
 
-  upstream_branch_full_name=$(git config "branch.$1.merge")
-  upstream_branch=${upstream_branch_full_name#"refs/heads/"}
+  local upstream_branch_full_name=$(git config "branch.$1.merge")
+  local upstream_branch=${upstream_branch_full_name#"refs/heads/"}
 
   remove_remote_branch $remote $upstream_branch
 }
