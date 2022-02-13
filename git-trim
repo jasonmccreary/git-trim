@@ -92,11 +92,11 @@ all=0
 dry_run=0
 merged=0
 pruned=0
-remote=0
-reset=''
 stale=0
 tracked=0
 untracked=0
+remote=0
+reset=''
 current_branch=$(git symbolic-ref -q --short HEAD)
 [ $# != 1 ] || pruned=1
 
@@ -104,17 +104,17 @@ current_branch=$(git symbolic-ref -q --short HEAD)
 # Parse options
 while [ $# != 0 ]; do
   case "$1" in
-    --all) all=1;;
-    --dry-run) dry_run=1;;
-    --merged) merged=1;;
-    --pruned) pruned=1;;
-    --remote) remote=1;;
-    --stale) stale=1;;
-    --tracked) tracked=1;;
-    --untracked) untracked=1;;
-    --reset=*) reset="${1#*=}";;
-    --reset) reset='origin';;
-    --) ;;
+  --all) all=1;;
+  --stale) stale=1;;
+  --merged) merged=1;;
+  --pruned) pruned=1;;
+  --tracked) tracked=1;;
+  --untracked) untracked=1;;
+  --remote) remote=1;;
+  --reset=*) reset="${1#*=}";;
+  --reset) reset='origin';;
+  --dry-run) dry_run=1;;
+  --) ;;
   esac
   shift
 done
@@ -125,8 +125,8 @@ if [ $all -eq 1 ]; then
   while true; do
     read -p "Are you sure you want to remove all branches? " choice
     case $(echo $choice | tr '[A-Z]' '[a-z]') in
-    y|yes) break;;
-    *) exit;;
+      y|yes) break;;
+      *) exit;;
     esac
   done
 
@@ -136,7 +136,7 @@ if [ $all -eq 1 ]; then
     command="$command -a"
   fi
 
-  branches=( $($command | grep -vF $current_branch) )
+  branches=( $($command | grep -vF $current_branch ) )
   branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
@@ -286,5 +286,6 @@ if [ -n "$reset" ]; then
     git branch -D $branch
   done
 fi
+
 
 exit 0
