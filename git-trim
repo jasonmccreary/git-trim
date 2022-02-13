@@ -23,6 +23,7 @@ u,untracked!      remove local branches not tracking a remote branch
 
 SUBDIRECTORY_OK='Yes' . "$(git --exec-path)/git-sh-setup"
 
+
 # Functions
 filter_branches() {
   local exclude=( $(git config gt.exclude) )
