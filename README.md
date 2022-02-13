@@ -1,6 +1,7 @@
 # git trim
 A command to quickly remove merged, pruned, untracked, or stale branches within a repository.
 
+
 ## Usage
 ```sh
 git trim
@@ -35,6 +36,7 @@ When the `--tracked` (or `-t`) option is used, the remote tracking branch is als
 
 When the `--remote` (or `-r`) option is used, `git trim` will remove remote branches instead of local branches. For example, `git trim --stale --remote` will remove remote branches without commits in the last 3 months (stale local branches will not be removed).
 
+
 ## Installation
 
 ### Basic install
@@ -53,14 +55,29 @@ npm install --global git-trim
 2. Add `git-trim` to your plugin list - edit `~/.zshrc` and change
    `plugins=(...)` to `plugins=(... git-trim)`
 
+
+## Configuration
+By default, `git trim` will never remove the current branch. However, depending on your branching strategy, you may have additional branches you never want to remove. For example, a `dev` or `staging` branch.
+
+If so, you may set a `gt.exclude` option to your Git configuration, either locally or globally, with a space delimited string of any additional branches you want to exclude from removal.
+
+```sh
+git config gt.exclude "dev staging"
+    # Always exclude the "dev" and "staging" branches from removal
+```
+
+
 ## Disclaimer
 Some of the options in this command remove branches without warning. Once a branch is removed, it might not be recoverable. You are entirely responsible when running this command.
+
 
 ## Credits
 There are thousands of commands and aliases for cleaning up branches sprinkled across the internet. I'll specifically link the commands and posts shared in [this Twitter thread](https://twitter.com/gonedark/status/1486721735621677068), [another project](https://github.com/foriequal0/git-trim) for inspiring the name, and [git-open](https://github.com/paulirish/git-open) which I used as a code reference.
 
+
 ## Contributing
 Feel free to open an issue or pull request to help contribute to the project. Currently the only code style requirement is an indentation of 2 spaces.
+
 
 ## License
 Copyright [Jason McCreary](https://github.com/jasonmccreary/). Licensed under [MIT](http://opensource.org/licenses/MIT).

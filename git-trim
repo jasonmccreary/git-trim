@@ -23,6 +23,34 @@ reset=?           remove all local branches except those existing on remote (def
 SUBDIRECTORY_OK='Yes' . "$(git --exec-path)/git-sh-setup"
 
 
+# Functions
+filter_branches() {
+  exclude=( $(git config gt.exclude) )
+
+  if [ ${#exclude} -eq 0 ]; then
+    echo "$@"
+    return
+  fi
+
+  branches=()
+
+  for branch in "$@"; do
+    if [ $remote -eq 1 ]; then
+      for excluded in "${exclude[@]}"; do
+        if [[ "$branch" == *"/$excluded" ]]; then
+          continue 2
+        fi
+      done
+
+      branches+=($branch)
+    else
+      [[ ! " ${exclude[*]} " =~ " $branch " ]] && branches+=($branch)
+    fi
+  done
+
+  echo "${branches[*]}"
+}
+
 prune_all() {
   git fetch --all -p > /dev/null 2>&1
 }
@@ -96,6 +124,7 @@ if [ $all -eq 1 ]; then
   fi
 
   branches=( $($command | grep -vF $current_branch) )
+  branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
     echo "No branches need to be trimmed."
@@ -128,6 +157,7 @@ if [ $merged -eq 1 ]; then
   fi
 
   branches=( $($command --merged | grep -vF $current_branch ) )
+  branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
     echo "There are no merged branches to trim."
@@ -152,6 +182,7 @@ fi
 if [ $pruned -eq 1 ]; then
   prune_all
   branches=( $(LANG=C git branch -vv | awk '/: gone]/{print $1}') )
+  branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
     echo "There are no local branches to trim."
@@ -173,6 +204,7 @@ if [ $stale -eq 1 ]; then
   fi
 
   branches=( $($command | grep -v "^\*") )
+  branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
     echo "There are no stale branches to trim."
@@ -194,6 +226,7 @@ fi
 # untracked
 if [ $untracked -eq 1 ]; then
   branches=( $(git branch --format='%(if)%(upstream)%(then)%(else)%(refname:short)%(end)' | awk NF) )
+  branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
     echo "There are no untracked branches to trim."
@@ -225,8 +258,10 @@ if [ -n $reset ]; then
   branches=()
 
   for branch in "${local_branches[@]}"; do
-      [[ ! " ${remote_branches[*]} " =~ " refs/heads/${branch} " ]] && branches+=($branch)
+    [[ ! " ${remote_branches[*]} " =~ " refs/heads/${branch} " ]] && branches+=($branch)
   done
+
+  branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
     echo "No branches need to be trimmed."
