@@ -17,6 +17,7 @@ s,stale!          remove local branches without commits in the last 3 months
 u,untracked!      remove local branches not tracking a remote branch
 t,tracked!        remove the tracking branch from remote
 r,remote!         remove remote branches instead of local branches
+e,explain!        prints branches to output instead of deleting theme
 "
 
 SUBDIRECTORY_OK='Yes' . "$(git --exec-path)/git-sh-setup"
@@ -55,6 +56,7 @@ stale=0
 tracked=0
 untracked=0
 remote=0
+explain=0
 current_branch=$(git symbolic-ref -q --short HEAD)
 [ $# != 1 ] || pruned=1
 
@@ -69,6 +71,7 @@ while [ $# != 0 ]; do
   --tracked) tracked=1;;
   --untracked) untracked=1;;
   --remote) remote=1;;
+  --explain) explain=1;;
   --) ;;
   *) remotes+=($1);;
   esac
@@ -96,6 +99,13 @@ if [ $all -eq 1 ]; then
 
   if [ ${#branches} -eq 0 ]; then
     echo "No branches need to be trimmed."
+    exit 0
+  fi
+
+  if [ $explain -eq 1 ]; then
+    for branch in "${branches[@]}"; do
+      echo "${branch} will be trimmed."
+    done
     exit 0
   fi
 
@@ -131,6 +141,13 @@ if [ $merged -eq 1 ]; then
     exit 0
   fi
 
+  if [ $explain -eq 1 ]; then
+    for branch in "${branches[@]}"; do
+      echo "${branch} will be trimmed."
+    done
+    exit 0
+  fi
+
   for branch in "${branches[@]}"; do
     if [ $remote -eq 1 ]; then
       remove_remote_branch ${branch%/*} ${branch#*/}
@@ -155,6 +172,13 @@ if [ $pruned -eq 1 ]; then
     exit 0
   fi
 
+  if [ $explain -eq 1 ]; then
+    for branch in "${branches[@]}"; do
+      echo "${branch} will be trimmed."
+    done
+    exit 0
+  fi
+
   for branch in "${branches[@]}"; do
     git branch -D $branch
   done
@@ -176,6 +200,13 @@ if [ $stale -eq 1 ]; then
     exit 0
   fi
 
+  if [ $explain -eq 1 ]; then
+    for branch in "${branches[@]}"; do
+      echo "${branch} will be trimmed."
+    done
+    exit 0
+  fi
+
   for branch in "${branches[@]}"; do
     if [ -z $(git log -1 -s --since="3 months ago" $branch) ]; then
       if [ $remote -eq 1 ]; then
@@ -194,6 +225,13 @@ if [ $untracked -eq 1 ]; then
 
   if [ ${#branches} -eq 0 ]; then
     echo "There are no untracked branches to trim."
+    exit 0
+  fi
+
+  if [ $explain -eq 1 ]; then
+    for branch in "${branches[@]}"; do
+      echo "${branch} will be trimmed."
+    done
     exit 0
   fi
 
