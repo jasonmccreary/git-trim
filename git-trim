@@ -56,13 +56,13 @@ prune_all() {
 }
 
 remove_tracking_branch() {
-  remote=$(git config "branch.$branch.remote")
+  remote=$(git config "branch.$1.remote")
 
   if [ -z $remote ]; then
     return
   fi
 
-  upstream_branch_full_name=$(git config "branch.$branch.merge")
+  upstream_branch_full_name=$(git config "branch.$1.merge")
   upstream_branch=${upstream_branch_full_name#"refs/heads/"}
 
   remove_remote_branch $remote $upstream_branch
@@ -242,7 +242,7 @@ fi
 
 
 # reset
-if [ -n $reset ]; then
+if [ -n "$reset" ]; then
   while true; do
     read -p "Are you sure you want to remove all local branches not on $reset? " choice
     case $(echo $choice | tr '[A-Z]' '[a-z]') in
