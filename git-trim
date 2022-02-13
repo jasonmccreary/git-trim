@@ -10,7 +10,7 @@ Removes merged, pruned, untracked, and stale branches within a repository.
 https://github.com/jasonmccreary/git-trim/
 --
   Available options are:
-a,all!            remove all local branches, except the current branch
+all!              remove all local branches, except the current branch
 m,merged!         remove local branches already merged into the current branch
 p,pruned!         remove local branches where its remote branch no longer exists
 s,stale!          remove local branches without commits in the last 3 months
