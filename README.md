@@ -68,7 +68,7 @@ git config gt.exclude "dev staging"
 
 
 ## Disclaimer
-Some of the options in this command remove branches without warning. Once a branch is removed, it might not be recoverable. You are entirely responsible when running this command.
+Some of the options in this command remove branches without warning. Once a branch is removed, it might not be recoverable. You are solely responsible when running this command.
 
 
 ## Credits
