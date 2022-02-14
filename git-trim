@@ -199,7 +199,7 @@ fi
 # pruned
 if [ $pruned -eq 1 ]; then
   prune_all
-  branches=( $(LANG=C git branch -vv | awk '/: gone]/{print $1}') )
+  branches=( $(LANG=C git branch -vv | grep -v '^\*' | awk '/: gone]/{print $1}') )
   branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
@@ -221,7 +221,7 @@ if [ $stale -eq 1 ]; then
     command="$command -r"
   fi
 
-  all_branches=( $($command | grep -v "^\*") )
+  all_branches=( $($command | grep -v '^\*') )
   all_branches=( $(filter_branches "${all_branches[@]}") )
   branches=()
 
