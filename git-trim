@@ -100,8 +100,7 @@ untracked=0
 remote=0
 reset=''
 current_branch=$(git symbolic-ref -q --short HEAD)
-[ $# != 1 ] || pruned=1
-
+options=$#
 
 # Parse options
 while [ $# != 0 ]; do
@@ -120,6 +119,10 @@ while [ $# != 0 ]; do
   esac
   shift
 done
+
+if [[ $options -eq 1 || ($options -eq 2 && $dry_run -eq 1) ]]; then
+  pruned=1
+fi
 
 
 # all
