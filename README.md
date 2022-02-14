@@ -52,10 +52,27 @@ npm install --global git-trim
 
 #### [Oh-My-Zsh](http://ohmyz.sh/)
 
-1. `git clone https://github.com/jasonmccreary/git-trim.git $ZSH_CUSTOM/plugins/git-trim`
-2. Add `git-trim` to your plugin list - edit `~/.zshrc` and change
+1. Run: `git clone https://github.com/jasonmccreary/git-trim.git $ZSH_CUSTOM/plugins/git-trim`
+2. Add `git-trim` to your plugin list: edit `~/.zshrc` and change
    `plugins=(...)` to `plugins=(... git-trim)`
 
+
+## Updating
+Once installed, the easiest way to update is to overwrite your local copy with the latest contents of the `git-trim` script.
+
+## Updating via NPM
+```sh
+npm update --global git-trim
+```
+
+## Updating via ZSH
+
+#### Oh-My-Zsh
+```sh
+cd $ZSH_CUSTOM/plugins/git-trim
+git fetch
+git pull
+```
 
 ## Configuration
 By default, `git trim` will never remove the current branch. However, depending on your branching strategy, you may have additional branches you never want to remove. For example, a `dev` or `staging` branch.
