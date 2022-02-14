@@ -11,7 +11,7 @@ https://github.com/jasonmccreary/git-trim/
 --
   Available options are:
 all!              remove all local branches, except the current branch
-dry-run!          prints branches to output instead of deleting them
+dry-run!          prints branches which will be removed instead of deleting them
 m,merged!         remove local branches already merged into the current branch
 p,pruned!         remove local branches where its remote branch no longer exists
 r,remote!         remove remote branches instead of local branches
