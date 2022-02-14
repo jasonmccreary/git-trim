@@ -221,8 +221,13 @@ if [ $stale -eq 1 ]; then
     command="$command -r"
   fi
 
-  branches=( $($command | grep -v "^\*") )
-  branches=( $(filter_branches "${branches[@]}") )
+  all_branches=( $($command | grep -v "^\*") )
+  all_branches=( $(filter_branches "${all_branches[@]}") )
+  branches=()
+
+  for branch in "${all_branches[@]}"; do
+    [[ $(git log -1 -s --since="3 months ago" $branch) ]] || branches+=($branch)
+  done
 
   if [ ${#branches} -eq 0 ]; then
     echo "There are no stale branches to trim."
@@ -230,12 +235,10 @@ if [ $stale -eq 1 ]; then
   fi
 
   for branch in "${branches[@]}"; do
-    if [ -z $(git log -1 -s --since="3 months ago" $branch) ]; then
-      if [ $remote -eq 1 ]; then
-        remove_remote_branch ${branch%/*} ${branch#*/}
-      else
-        remove_local_branch $branch
-      fi
+    if [ $remote -eq 1 ]; then
+      remove_remote_branch ${branch%/*} ${branch#*/}
+    else
+      remove_local_branch $branch
     fi
   done
 fi
