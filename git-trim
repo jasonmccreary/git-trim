@@ -71,7 +71,7 @@ remove_tracking_branch() {
 
 remove_remote_branch() {
   if [ $dry_run -eq 1 ]; then
-    echo "$2 (on $1) will be trimmed."
+    echo "$2 will be deleted from $1."
   else
     git push -d $1 $2 >/dev/null 2>&1
     if [ $? -eq 0 ]; then
@@ -82,11 +82,12 @@ remove_remote_branch() {
 
 remove_local_branch() {
   if [ $dry_run -eq 1 ]; then
-    echo "$1 will be trimmed."
+    echo "$1 will be deleted."
   else
     git branch -D $1
   fi
 }
+
 
 # Defaults
 all=0
@@ -105,17 +106,17 @@ current_branch=$(git symbolic-ref -q --short HEAD)
 # Parse options
 while [ $# != 0 ]; do
   case "$1" in
-  --all) all=1;;
-  --stale) stale=1;;
-  --merged) merged=1;;
-  --pruned) pruned=1;;
-  --tracked) tracked=1;;
-  --untracked) untracked=1;;
-  --remote) remote=1;;
-  --reset=*) reset="${1#*=}";;
-  --reset) reset='origin';;
-  --dry-run) dry_run=1;;
-  --) ;;
+    --all) all=1;;
+    --stale) stale=1;;
+    --merged) merged=1;;
+    --pruned) pruned=1;;
+    --tracked) tracked=1;;
+    --untracked) untracked=1;;
+    --remote) remote=1;;
+    --reset=*) reset="${1#*=}";;
+    --reset) reset='origin';;
+    --dry-run) dry_run=1;;
+    --) ;;
   esac
   shift
 done
