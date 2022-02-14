@@ -60,12 +60,12 @@ npm install --global git-trim
 ## Updating
 Once installed, the easiest way to update is to overwrite your local copy with the latest contents of the `git-trim` script.
 
-## Updating via NPM
+### Updating via NPM
 ```sh
 npm update --global git-trim
 ```
 
-## Updating via ZSH
+### Updating via ZSH
 
 #### Oh-My-Zsh
 ```sh
