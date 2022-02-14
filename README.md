@@ -36,6 +36,7 @@ When the `--tracked` (or `-t`) option is used, the remote tracking branch is als
 
 When the `--remote` (or `-r`) option is used, `git trim` will remove remote branches instead of local branches. For example, `git trim --stale --remote` will remove remote branches without commits in the last 3 months (stale local branches will not be removed).
 
+Finally, you may also append the `--dry-run` option to any `git-trim` command to simply list the branches which would be deleted instead of actually removing them.
 
 ## Installation
 
