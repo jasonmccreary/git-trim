@@ -11,13 +11,14 @@ https://github.com/jasonmccreary/git-trim/
 --
   Available options are:
 all!              remove all local branches, except the current branch
+dry-run!          prints branches to output instead of deleting theme
 m,merged!         remove local branches already merged into the current branch
 p,pruned!         remove local branches where its remote branch no longer exists
-s,stale!          remove local branches without commits in the last 3 months
-u,untracked!      remove local branches not tracking a remote branch
-t,tracked!        remove the tracking branch from remote
 r,remote!         remove remote branches instead of local branches
 reset=?           remove all local branches except those existing on remote (default: origin)
+s,stale!          remove local branches without commits in the last 3 months
+t,tracked!        remove the tracking branch from remote
+u,untracked!      remove local branches not tracking a remote branch
 "
 
 SUBDIRECTORY_OK='Yes' . "$(git --exec-path)/git-sh-setup"
@@ -69,15 +70,28 @@ remove_tracking_branch() {
 }
 
 remove_remote_branch() {
-  git push -d $1 $2 > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
-    echo "Deleted branch $2 (on $1)."
+  if [ $dry_run -eq 1 ]; then
+    echo "$2 will be deleted from $1."
+  else
+    git push -d $1 $2 >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      echo "Deleted branch $2 (on $1)."
+    fi
+  fi
+}
+
+remove_local_branch() {
+  if [ $dry_run -eq 1 ]; then
+    echo "$1 will be deleted."
+  else
+    git branch -D $1
   fi
 }
 
 
 # Defaults
 all=0
+dry_run=0
 merged=0
 pruned=0
 stale=0
@@ -92,16 +106,17 @@ current_branch=$(git symbolic-ref -q --short HEAD)
 # Parse options
 while [ $# != 0 ]; do
   case "$1" in
-  --all) all=1;;
-  --stale) stale=1;;
-  --merged) merged=1;;
-  --pruned) pruned=1;;
-  --tracked) tracked=1;;
-  --untracked) untracked=1;;
-  --remote) remote=1;;
-  --reset=*) reset="${1#*=}";;
-  --reset) reset='origin';;
-  --) ;;
+    --all) all=1;;
+    --stale) stale=1;;
+    --merged) merged=1;;
+    --pruned) pruned=1;;
+    --tracked) tracked=1;;
+    --untracked) untracked=1;;
+    --remote) remote=1;;
+    --reset=*) reset="${1#*=}";;
+    --reset) reset='origin';;
+    --dry-run) dry_run=1;;
+    --) ;;
   esac
   shift
 done
@@ -138,7 +153,7 @@ if [ $all -eq 1 ]; then
         remove_remote_branch ${name%/*} ${name#*/}
       fi
     else
-      git branch -D $branch
+      remove_local_branch $branch
 
       if [ $tracked -eq 1 ]; then
         remove_tracking_branch $branch
@@ -172,7 +187,7 @@ if [ $merged -eq 1 ]; then
         remove_tracking_branch $branch
       fi
 
-      git branch -d $branch
+      remove_local_branch $branch
     fi
   done
 fi
@@ -190,7 +205,7 @@ if [ $pruned -eq 1 ]; then
   fi
 
   for branch in "${branches[@]}"; do
-    git branch -D $branch
+    remove_local_branch $branch
   done
 fi
 
@@ -216,7 +231,7 @@ if [ $stale -eq 1 ]; then
       if [ $remote -eq 1 ]; then
         remove_remote_branch ${branch%/*} ${branch#*/}
       else
-        git branch -D $branch
+        remove_local_branch $branch
       fi
     fi
   done
@@ -235,7 +250,7 @@ if [ $untracked -eq 1 ]; then
 
   for branch in "${branches[@]}"; do
     if [ "$branch" != "$current_branch" ]; then
-      git branch -D $branch
+      remove_local_branch $branch
     fi
   done
 fi
@@ -269,7 +284,7 @@ if [ -n "$reset" ]; then
   fi
 
   for branch in "${branches[@]}"; do
-    git branch -D $branch
+    remove_local_branch $branch
   done
 fi
 
