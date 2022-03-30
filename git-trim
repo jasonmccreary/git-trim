@@ -153,7 +153,7 @@ if [ $all -eq 1 ]; then
     if [ $remote -eq 1 ]; then
       if [ "${branch:0:8}" == "remotes/" ]; then
         name="${branch:8}"
-        remove_remote_branch ${name%/*} ${name#*/}
+        remove_remote_branch ${name%%/*} ${name#*/}
       fi
     else
       remove_local_branch $branch
@@ -184,7 +184,7 @@ if [ $merged -eq 1 ]; then
 
   for branch in "${branches[@]}"; do
     if [ $remote -eq 1 ]; then
-      remove_remote_branch ${branch%/*} ${branch#*/}
+      remove_remote_branch ${branch%%/*} ${branch#*/}
     else
       if [ $tracked -eq 1 ]; then
         remove_tracking_branch $branch
@@ -236,7 +236,7 @@ if [ $stale -eq 1 ]; then
 
   for branch in "${branches[@]}"; do
     if [ $remote -eq 1 ]; then
-      remove_remote_branch ${branch%/*} ${branch#*/}
+      remove_remote_branch ${branch%%/*} ${branch#*/}
     else
       remove_local_branch $branch
     fi
