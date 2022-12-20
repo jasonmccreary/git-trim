@@ -88,6 +88,21 @@ remove_local_branch() {
   fi
 }
 
+approve_remove_action() {
+  for branch in "${branches[@]}"; do
+    if [ "$branch" != "$current_branch" ]; then
+      echo $branch
+    fi
+  done
+
+  while true; do
+    read -p "Are you sure you want to remove branches above? " choice
+    case $(echo $choice | tr '[A-Z]' '[a-z]') in
+      y|yes) break;;
+      *) echo "Aborted." && exit;;
+    esac
+  done
+}
 
 # Defaults
 all=0
@@ -131,7 +146,7 @@ if [ $all -eq 1 ]; then
     read -p "Are you sure you want to remove all branches? " choice
     case $(echo $choice | tr '[A-Z]' '[a-z]') in
       y|yes) break;;
-      *) exit;;
+      *) echo "Aborted." && exit;;
     esac
   done
 
@@ -182,6 +197,8 @@ if [ $merged -eq 1 ]; then
     exit 0
   fi
 
+  approve_remove_action $branches
+
   for branch in "${branches[@]}"; do
     if [ $remote -eq 1 ]; then
       remove_remote_branch ${branch%%/*} ${branch#*/}
@@ -206,6 +223,8 @@ if [ $pruned -eq 1 ]; then
     echo "There are no local branches to trim."
     exit 0
   fi
+
+  approve_remove_action $branches
 
   for branch in "${branches[@]}"; do
     remove_local_branch $branch
@@ -234,6 +253,8 @@ if [ $stale -eq 1 ]; then
     exit 0
   fi
 
+  approve_remove_action $branches
+
   for branch in "${branches[@]}"; do
     if [ $remote -eq 1 ]; then
       remove_remote_branch ${branch%%/*} ${branch#*/}
@@ -249,10 +270,12 @@ if [ $untracked -eq 1 ]; then
   branches=( $(git branch --format='%(if)%(upstream)%(then)%(else)%(refname:short)%(end)' | awk NF) )
   branches=( $(filter_branches "${branches[@]}") )
 
-  if [ ${#branches} -eq 0 ]; then
+  if [ ${#branches[@]} -le 1 ]; then
     echo "There are no untracked branches to trim."
     exit 0
   fi
+
+  approve_remove_action $branches
 
   for branch in "${branches[@]}"; do
     if [ "$branch" != "$current_branch" ]; then
@@ -288,6 +311,8 @@ if [ -n "$reset" ]; then
     echo "No branches need to be trimmed."
     exit 0
   fi
+
+  approve_remove_action $branches
 
   for branch in "${branches[@]}"; do
     remove_local_branch $branch
