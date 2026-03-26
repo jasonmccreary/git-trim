@@ -17,6 +17,7 @@ p,pruned!         remove local branches where its remote branch no longer exists
 r,remote!         remove remote branches instead of local branches
 reset=?           remove all local branches except those existing on remote (default: origin)
 s,stale!          remove local branches without commits in the last 3 months
+q,squashed!       remove local branches already squash-merged into the current branch
 t,tracked!        remove the tracking branch from remote
 u,untracked!      remove local branches not tracking a remote branch
 "
@@ -94,6 +95,7 @@ all=0
 dry_run=0
 merged=0
 pruned=0
+squashed=0
 stale=0
 tracked=0
 untracked=0
@@ -107,6 +109,7 @@ while [ $# != 0 ]; do
   case "$1" in
     --all) all=1;;
     --stale) stale=1;;
+    --squashed) squashed=1;;
     --merged) merged=1;;
     --pruned) pruned=1;;
     --tracked) tracked=1;;
@@ -179,6 +182,52 @@ if [ $merged -eq 1 ]; then
 
   if [ ${#branches} -eq 0 ]; then
     echo "There are no merged branches to trim."
+    exit 0
+  fi
+
+  for branch in "${branches[@]}"; do
+    if [ $remote -eq 1 ]; then
+      remove_remote_branch ${branch%%/*} ${branch#*/}
+    else
+      if [ $tracked -eq 1 ]; then
+        remove_tracking_branch $branch
+      fi
+
+      remove_local_branch $branch
+    fi
+  done
+fi
+
+
+# squashed
+if [ $squashed -eq 1 ]; then
+  command='git for-each-ref --format=%(refname:short)'
+  if [ $remote -eq 1 ]; then
+    prune_all
+    command="$command refs/remotes/"
+  else
+    command="$command refs/heads/"
+  fi
+
+  all_branches=( $($command) )
+  all_branches=( $(filter_branches "${all_branches[@]}") )
+  branches=()
+
+  for branch in "${all_branches[@]}"; do
+    if [ "$branch" == "$current_branch" ]; then
+      continue
+    fi
+
+    merge_base=$(git merge-base $current_branch $branch 2>/dev/null) || continue
+    tree_commit=$(git commit-tree $(git rev-parse "$branch^{tree}") -p $merge_base -m _) || continue
+
+    if [[ $(git cherry $current_branch $tree_commit) == "-"* ]]; then
+      branches+=($branch)
+    fi
+  done
+
+  if [ ${#branches} -eq 0 ]; then
+    echo "There are no squash-merged branches to trim."
     exit 0
   fi
 

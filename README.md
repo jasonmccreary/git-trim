@@ -20,6 +20,10 @@ git trim --stale
 git trim -s
 # Removes local branches without commits in the last 3 months
 
+git trim --squashed
+git trim -q
+# Removes local branches already squash-merged into the current branch
+
 git trim --untracked
 git trim -u
 # Removes local branches not tracking a remote branch
