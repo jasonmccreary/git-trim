@@ -1,7 +1,7 @@
 {
   "name": "git-trim",
   "version": "0.2.1",
-  "description": "Quickly remove merged, pruned, untracked, or stale branches within a repository.",
+  "description": "Quickly remove merged, squash-merged, pruned, untracked, or stale branches within a repository.",
   "author": "Jason McCreary (https://jasonmccreary.me/)",
   "license": "MIT",
   "homepage": "https://github.com/jasonmccreary/git-trim",
