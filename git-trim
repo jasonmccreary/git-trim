@@ -27,7 +27,13 @@ SUBDIRECTORY_OK='Yes' . "$(git --exec-path)/git-sh-setup"
 
 # Functions
 filter_branches() {
+  local restore_glob=0
+  if [[ ! -o noglob ]]; then
+    restore_glob=1
+    set -o noglob
+  fi
   local exclude=( $(git config gt.exclude) )
+  [ $restore_glob -eq 1 ] && set +o noglob
 
   if [ ${#exclude} -eq 0 ]; then
     echo "$@"
@@ -39,14 +45,22 @@ filter_branches() {
   for branch in "$@"; do
     if [ $remote -eq 1 ]; then
       for excluded in "${exclude[@]}"; do
-        if [[ "$branch" == *"/$excluded" ]]; then
+        if [[ "$branch" == */$excluded ]]; then
           continue 2
         fi
       done
 
-      branches+=($branch)
+      branches+=("$branch")
     else
-      [[ ! " ${exclude[*]} " =~ " $branch " ]] && branches+=($branch)
+      local matched=0
+      for excluded in "${exclude[@]}"; do
+        if [[ "$branch" == $excluded ]]; then
+          matched=1
+          break
+        fi
+      done
+
+      [ $matched -eq 0 ] && branches+=("$branch")
     fi
   done
 

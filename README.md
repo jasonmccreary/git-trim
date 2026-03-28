@@ -90,6 +90,13 @@ git config gt.exclude "dev staging"
 # Always exclude the "dev" and "staging" branches from removal
 ```
 
+You may also use glob patterns (wildcards) to exclude branches matching a pattern.
+
+```sh
+git config gt.exclude "dev staging save/*"
+# Exclude "dev", "staging", and any branch starting with "save/"
+```
+
 ## Disclaimer
 Some of the options in this command remove branches without warning. Once a branch is removed, it might not be recoverable. You are solely responsible when running this command.
 
