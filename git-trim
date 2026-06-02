@@ -116,6 +116,7 @@ untracked=0
 remote=0
 reset=''
 current_branch=$(git symbolic-ref -q --short HEAD)
+worktree_branches=( $(git branch | grep '^+ ' | sed 's/^+ //') )
 options=$#
 
 # Parse options
@@ -158,7 +159,7 @@ if [ $all -eq 1 ]; then
     command="$command -a"
   fi
 
-  branches=( $($command | grep -vF $current_branch) )
+  branches=( $($command | grep -v '^[*+]') )
   branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
@@ -191,7 +192,7 @@ if [ $merged -eq 1 ]; then
     command="$command -r"
   fi
 
-  branches=( $($command --merged | grep -vF $current_branch ) )
+  branches=( $($command --merged | grep -v '^[*+]') )
   branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
@@ -231,6 +232,9 @@ if [ $squashed -eq 1 ]; then
     if [ "$branch" == "$current_branch" ]; then
       continue
     fi
+    if [[ " ${worktree_branches[*]} " =~ " $branch " ]]; then
+      continue
+    fi
 
     merge_base=$(git merge-base $current_branch $branch 2>/dev/null) || continue
     tree_commit=$(git commit-tree $(git rev-parse "$branch^{tree}") -p $merge_base -m _) || continue
@@ -262,7 +266,7 @@ fi
 # pruned
 if [ $pruned -eq 1 ]; then
   prune_all
-  branches=( $(LANG=C git branch -vv | grep -v '^\*' | awk '/: gone]/{print $1}') )
+  branches=( $(LANG=C git branch -vv | grep -v '^[*+]' | awk '/: gone]/{print $1}') )
   branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
@@ -284,7 +288,7 @@ if [ $stale -eq 1 ]; then
     command="$command -r"
   fi
 
-  all_branches=( $($command | grep -v '^\*') )
+  all_branches=( $($command | grep -v '^[*+]') )
   all_branches=( $(filter_branches "${all_branches[@]}") )
   branches=()
 
@@ -318,7 +322,7 @@ if [ $untracked -eq 1 ]; then
   fi
 
   for branch in "${branches[@]}"; do
-    if [ "$branch" != "$current_branch" ]; then
+    if [ "$branch" != "$current_branch" ] && [[ ! " ${worktree_branches[*]} " =~ " $branch " ]]; then
       remove_local_branch $branch
     fi
   done
@@ -338,7 +342,7 @@ if [ -n "$reset" ]; then
   git fetch -p $reset > /dev/null 2>&1
 
   remote_branches=( $(git ls-remote --heads origin | cut -f 2) )
-  local_branches=( $(git branch | grep -vF $current_branch) )
+  local_branches=( $(git branch | grep -v '^[*+]') )
   branches=()
 
   for branch in "${local_branches[@]}"; do
