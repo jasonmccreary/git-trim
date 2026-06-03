@@ -116,7 +116,7 @@ untracked=0
 remote=0
 reset=''
 current_branch=$(git symbolic-ref -q --short HEAD)
-worktree_branches=( $(git branch | grep '^+ ' | sed 's/^+ //') )
+worktree_branches=( $(git worktree list --porcelain | grep '^branch ' | sed 's|^branch refs/heads/||') )
 options=$#
 
 # Parse options
@@ -160,6 +160,9 @@ if [ $all -eq 1 ]; then
   fi
 
   branches=( $($command | grep -v '^[*+]') )
+  if [ $remote -eq 1 ]; then
+    branches=( $(printf '%s\n' "${branches[@]}" | grep -vF "/$current_branch") )
+  fi
   branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
@@ -193,6 +196,9 @@ if [ $merged -eq 1 ]; then
   fi
 
   branches=( $($command --merged | grep -v '^[*+]') )
+  if [ $remote -eq 1 ]; then
+    branches=( $(printf '%s\n' "${branches[@]}" | grep -vF "/$current_branch") )
+  fi
   branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
@@ -232,7 +238,9 @@ if [ $squashed -eq 1 ]; then
     if [ "$branch" == "$current_branch" ]; then
       continue
     fi
-    if [[ " ${worktree_branches[*]} " =~ " $branch " ]]; then
+    local check_branch="$branch"
+    [ $remote -eq 1 ] && check_branch="${branch#*/}"
+    if [[ " ${worktree_branches[*]} " =~ " $check_branch " ]]; then
       continue
     fi
 
