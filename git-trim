@@ -238,7 +238,7 @@ if [ $squashed -eq 1 ]; then
     if [ "$branch" == "$current_branch" ]; then
       continue
     fi
-    local check_branch="$branch"
+    check_branch="$branch"
     [ $remote -eq 1 ] && check_branch="${branch#*/}"
     if [[ " ${worktree_branches[*]} " =~ " $check_branch " ]]; then
       continue
