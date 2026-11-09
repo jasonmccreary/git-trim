@@ -6,6 +6,10 @@ count_deletes() {
   git trim "$@" | awk -F'\t' '$1 == "delete" {n++} END {print n+0}'
 }
 
+count_trimmable() {
+  git trim "$@" | awk -F'\t' '$1 == "delete" || $1 == "skip-worktree" {n++} END {print n+0}'
+}
+
 # Record format
 @test "a local deletion prints a delete record" {
   merged_branch done
@@ -230,6 +234,30 @@ count_deletes() {
 
 @test "the README example prints zero with a success status" {
   run -0 count_deletes --squashed --dry-run --porcelain
+
+  assert_output "0"
+}
+
+@test "the README hook counts squashed branches" {
+  squashed_branch one
+  squashed_branch two
+
+  run -0 count_trimmable --squashed --dry-run --porcelain
+
+  assert_output "2"
+}
+
+@test "the README hook counts branches checked out in a worktree" {
+  squashed_branch done
+  checkout_in_worktree done
+
+  run -0 count_trimmable --squashed --dry-run --porcelain
+
+  assert_output "1"
+}
+
+@test "the README hook prints zero with a success status" {
+  run -0 count_trimmable --squashed --dry-run --porcelain
 
   assert_output "0"
 }
