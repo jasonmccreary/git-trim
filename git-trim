@@ -180,7 +180,7 @@ if [ $all -eq 1 ]; then
     command="$command -a"
   fi
 
-  branches=( $($command | grep -v '^[*+]') )
+  branches=( $($command | grep -v -e '^[*+]' -e ' -> ') )
   if [ $remote -eq 1 ]; then
     branches=( $(printf '%s\n' "${branches[@]}" | grep -vF "/$current_branch") )
   fi
@@ -216,7 +216,7 @@ if [ $merged -eq 1 ]; then
     command="$command -r"
   fi
 
-  branches=( $($command --merged | grep -v '^[*+]') )
+  branches=( $($command --merged | grep -v -e '^[*+]' -e ' -> ') )
   if [ $remote -eq 1 ]; then
     branches=( $(printf '%s\n' "${branches[@]}" | grep -vF "/$current_branch") )
   fi
@@ -243,7 +243,7 @@ fi
 
 # squashed
 if [ $squashed -eq 1 ]; then
-  command='git for-each-ref --format=%(refname:short)'
+  command='git for-each-ref --format=%(if)%(symref)%(then)%(else)%(refname:short)%(end)'
   if [ $remote -eq 1 ]; then
     prune_all
     command="$command refs/remotes/"
@@ -317,7 +317,7 @@ if [ $stale -eq 1 ]; then
     command="$command -r"
   fi
 
-  all_branches=( $($command | grep -v '^[*+]') )
+  all_branches=( $($command | grep -v -e '^[*+]' -e ' -> ') )
   all_branches=( $(filter_branches "${all_branches[@]}") )
   branches=()
 
