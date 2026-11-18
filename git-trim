@@ -10,7 +10,7 @@ Removes merged, pruned, untracked, and stale branches within a repository.
 https://github.com/jasonmccreary/git-trim/
 --
   Available options are:
-all!              remove all local branches, except the current branch
+all!              remove all local branches, except the current and default branches
 dry-run!          prints branches which will be removed instead of deleting them
 m,merged!         remove local branches already merged into the current branch
 p,pruned!         remove local branches where its remote branch no longer exists
@@ -34,9 +34,8 @@ filter_branches() {
   fi
   local exclude=( $(git config gt.exclude) )
   [ $restore_glob -eq 1 ] && set +o noglob
-  [ -n "$default_branch" ] && exclude+=("$default_branch")
 
-  if [ ${#exclude} -eq 0 ]; then
+  if [ ${#exclude[@]} -eq 0 ] && [ ${#default_branches[@]} -eq 0 ]; then
     echo "$@"
     return
   fi
@@ -45,6 +44,12 @@ filter_branches() {
 
   for branch in "$@"; do
     if [ $remote -eq 1 ]; then
+      for default in "${default_branches[@]}"; do
+        if [ "${branch#remotes/}" == "$default" ]; then
+          continue 2
+        fi
+      done
+
       for excluded in "${exclude[@]}"; do
         if [[ "$branch" == */$excluded ]]; then
           continue 2
@@ -53,6 +58,12 @@ filter_branches() {
 
       branches+=("$branch")
     else
+      for default in "${default_branch_names[@]}"; do
+        if [ "$branch" == "$default" ]; then
+          continue 2
+        fi
+      done
+
       local matched=0
       for excluded in "${exclude[@]}"; do
         if [[ "$branch" == $excluded ]]; then
@@ -117,8 +128,15 @@ untracked=0
 remote=0
 reset=''
 current_branch=$(git symbolic-ref -q --short HEAD)
-default_branch=$(git symbolic-ref -q --short refs/remotes/origin/HEAD)
-default_branch=${default_branch#origin/}
+default_branches=()
+default_branch_names=()
+if [ "$(git config --bool gt.protectDefault)" != 'false' ]; then
+  for name in $(git remote); do
+    ref=$(git symbolic-ref -q "refs/remotes/$name/HEAD") || continue
+    default_branches+=("$name/${ref#refs/remotes/$name/}")
+    default_branch_names+=("${ref#refs/remotes/$name/}")
+  done
+fi
 worktree_branches=( $(git worktree list --porcelain | grep '^branch ' | sed 's|^branch refs/heads/||') )
 options=$#
 
