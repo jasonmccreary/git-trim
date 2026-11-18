@@ -108,7 +108,7 @@ remove_remote_branch() {
 }
 
 worktree_path() {
-  git worktree list --porcelain | awk -v ref="branch refs/heads/$1" '/^worktree /{path=substr($0, 10)} $0 == ref {print path; exit}'
+  printf '%s\n' "$worktrees" | awk -v ref="branch refs/heads/$1" '/^worktree /{path=substr($0, 10)} $0 == ref {print path; exit}'
 }
 
 skip_worktree_branch() {
@@ -151,7 +151,8 @@ if [ "$(git config --bool gt.protectDefault)" != 'false' ]; then
     default_branch_names+=("${ref#refs/remotes/$name/}")
   done
 fi
-worktree_branches=( $(git worktree list --porcelain | grep '^branch ' | sed 's|^branch refs/heads/||') )
+worktrees=$(git worktree list --porcelain)
+worktree_branches=( $(printf '%s\n' "$worktrees" | grep '^branch ' | sed 's|^branch refs/heads/||') )
 options=$#
 
 # Parse options
