@@ -107,6 +107,20 @@ remove_remote_branch() {
   fi
 }
 
+worktree_path() {
+  printf '%s\n' "$worktrees" | awk -v ref="branch refs/heads/$1" '/^worktree /{path=substr($0, 10)} $0 == ref {print path; exit}'
+}
+
+skip_worktree_branch() {
+  local path=$(worktree_path "$1")
+
+  if [ -z "$path" ]; then
+    return 1
+  fi
+
+  echo "Skipping branch $1 (checked out in worktree at $path)."
+}
+
 remove_local_branch() {
   if [ $dry_run -eq 1 ]; then
     echo "$1 will be deleted."
@@ -137,7 +151,8 @@ if [ "$(git config --bool gt.protectDefault)" != 'false' ]; then
     default_branch_names+=("${ref#refs/remotes/$name/}")
   done
 fi
-worktree_branches=( $(git worktree list --porcelain | grep '^branch ' | sed 's|^branch refs/heads/||') )
+worktrees=$(git worktree list --porcelain)
+worktree_branches=( $(printf '%s\n' "$worktrees" | grep '^branch ' | sed 's|^branch refs/heads/||') )
 options=$#
 
 # Parse options
@@ -180,7 +195,7 @@ if [ $all -eq 1 ]; then
     command="$command -a"
   fi
 
-  branches=( $($command | grep -v -e '^[*+]' -e ' -> ') )
+  branches=( $($command | grep -v -e '^\*' -e ' -> ' | cut -c3-) )
   if [ $remote -eq 1 ]; then
     branches=( $(printf '%s\n' "${branches[@]}" | grep -vF "/$current_branch") )
   fi
@@ -198,6 +213,7 @@ if [ $all -eq 1 ]; then
         remove_remote_branch ${name%%/*} ${name#*/}
       fi
     else
+      skip_worktree_branch $branch && continue
       remove_local_branch $branch
 
       if [ $tracked -eq 1 ]; then
@@ -216,7 +232,7 @@ if [ $merged -eq 1 ]; then
     command="$command -r"
   fi
 
-  branches=( $($command --merged | grep -v -e '^[*+]' -e ' -> ') )
+  branches=( $($command --merged | grep -v -e '^\*' -e ' -> ' | cut -c3-) )
   if [ $remote -eq 1 ]; then
     branches=( $(printf '%s\n' "${branches[@]}" | grep -vF "/$current_branch") )
   fi
@@ -231,6 +247,8 @@ if [ $merged -eq 1 ]; then
     if [ $remote -eq 1 ]; then
       remove_remote_branch ${branch%%/*} ${branch#*/}
     else
+      skip_worktree_branch $branch && continue
+
       if [ $tracked -eq 1 ]; then
         remove_tracking_branch $branch
       fi
@@ -259,9 +277,7 @@ if [ $squashed -eq 1 ]; then
     if [ "$branch" == "$current_branch" ]; then
       continue
     fi
-    check_branch="$branch"
-    [ $remote -eq 1 ] && check_branch="${branch#*/}"
-    if [[ " ${worktree_branches[*]} " =~ " $check_branch " ]]; then
+    if [ $remote -eq 1 ] && [[ " ${worktree_branches[*]} " =~ " ${branch#*/} " ]]; then
       continue
     fi
 
@@ -282,6 +298,8 @@ if [ $squashed -eq 1 ]; then
     if [ $remote -eq 1 ]; then
       remove_remote_branch ${branch%%/*} ${branch#*/}
     else
+      skip_worktree_branch $branch && continue
+
       if [ $tracked -eq 1 ]; then
         remove_tracking_branch $branch
       fi
@@ -295,7 +313,7 @@ fi
 # pruned
 if [ $pruned -eq 1 ]; then
   prune_all
-  branches=( $(LANG=C git branch -vv | grep -v '^[*+]' | awk '/: gone]/{print $1}') )
+  branches=( $(LANG=C git branch -vv | grep -v '^\*' | cut -c3- | awk '/: gone]/{print $1}') )
   branches=( $(filter_branches "${branches[@]}") )
 
   if [ ${#branches} -eq 0 ]; then
@@ -304,6 +322,7 @@ if [ $pruned -eq 1 ]; then
   fi
 
   for branch in "${branches[@]}"; do
+    skip_worktree_branch $branch && continue
     remove_local_branch $branch
   done
 fi
@@ -317,7 +336,7 @@ if [ $stale -eq 1 ]; then
     command="$command -r"
   fi
 
-  all_branches=( $($command | grep -v -e '^[*+]' -e ' -> ') )
+  all_branches=( $($command | grep -v -e '^\*' -e ' -> ' | cut -c3-) )
   all_branches=( $(filter_branches "${all_branches[@]}") )
   branches=()
 
@@ -334,6 +353,7 @@ if [ $stale -eq 1 ]; then
     if [ $remote -eq 1 ]; then
       remove_remote_branch ${branch%%/*} ${branch#*/}
     else
+      skip_worktree_branch $branch && continue
       remove_local_branch $branch
     fi
   done
@@ -351,7 +371,8 @@ if [ $untracked -eq 1 ]; then
   fi
 
   for branch in "${branches[@]}"; do
-    if [ "$branch" != "$current_branch" ] && [[ ! " ${worktree_branches[*]} " =~ " $branch " ]]; then
+    if [ "$branch" != "$current_branch" ]; then
+      skip_worktree_branch $branch && continue
       remove_local_branch $branch
     fi
   done
@@ -371,7 +392,7 @@ if [ -n "$reset" ]; then
   git fetch -p $reset > /dev/null 2>&1
 
   remote_branches=( $(git ls-remote --heads $reset | cut -f 2) )
-  local_branches=( $(git branch | grep -v '^[*+]') )
+  local_branches=( $(git branch | grep -v '^\*' | cut -c3-) )
   branches=()
 
   for branch in "${local_branches[@]}"; do
@@ -386,6 +407,7 @@ if [ -n "$reset" ]; then
   fi
 
   for branch in "${branches[@]}"; do
+    skip_worktree_branch $branch && continue
     remove_local_branch $branch
   done
 fi
