@@ -370,7 +370,7 @@ if [ -n "$reset" ]; then
 
   git fetch -p $reset > /dev/null 2>&1
 
-  remote_branches=( $(git ls-remote --heads origin | cut -f 2) )
+  remote_branches=( $(git ls-remote --heads $reset | cut -f 2) )
   local_branches=( $(git branch | grep -v '^[*+]') )
   branches=()
 
