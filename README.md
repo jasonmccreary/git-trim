@@ -81,7 +81,7 @@ git pull
 ```
 
 ## Configuration
-By default, `git trim` will never remove the current branch. However, depending on your branching strategy, you may have additional branches you never want to remove. For example, a `dev` or `staging` branch.
+By default, `git trim` will never remove the current branch or the default branch of any remote (as set by `git remote set-head <remote> --auto`). However, depending on your branching strategy, you may have additional branches you never want to remove. For example, a `dev` or `staging` branch.
 
 If so, you may set a `gt.exclude` option to your Git configuration, either locally or globally, with a space delimited string of any additional branches you want to exclude from removal.
 
@@ -95,6 +95,12 @@ You may also use glob patterns (wildcards) to exclude branches matching a patter
 ```sh
 git config gt.exclude "dev staging save/*"
 # Exclude "dev", "staging", and any branch starting with "save/"
+```
+
+If you want `git trim` to be able to remove the default branch, you may set the `gt.protectDefault` option to `false`.
+
+```sh
+git config gt.protectDefault false
 ```
 
 ## Disclaimer
