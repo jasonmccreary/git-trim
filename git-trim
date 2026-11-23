@@ -381,6 +381,10 @@ if [ $stale -eq 1 ]; then
   branches=()
 
   for branch in "${all_branches[@]}"; do
+    if [ $remote -eq 1 ] && [ "${branch#*/}" == "$current_branch" ]; then
+      continue
+    fi
+
     [[ $(git log -1 -s --since="3 months ago" $branch) ]] || branches+=($branch)
   done
 

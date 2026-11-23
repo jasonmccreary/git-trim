@@ -101,7 +101,6 @@ load test_helper
 }
 
 @test "--stale --remote keeps the current branch on the remote" {
-  known_bug "--stale --remote does not filter the current branch"
   stale_branch old
   push_branch old
   git switch -q old
@@ -109,6 +108,19 @@ load test_helper
   run -0 git trim --stale --remote
 
   assert_remote_branch old
+}
+
+@test "--stale --remote matches the current branch exactly" {
+  stale_branch old
+  stale_branch old-two
+  push_branch old
+  push_branch old-two
+  git switch -q old
+
+  run -0 git trim --stale --remote
+
+  assert_remote_branch old
+  refute_remote_branch old-two
 }
 
 @test "--squashed --remote removes squash-merged remote branches" {
