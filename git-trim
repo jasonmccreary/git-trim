@@ -104,14 +104,16 @@ remove_remote_branch() {
     else
       echo "$2 will be deleted from $1."
     fi
+  elif [ $porcelain -eq 1 ]; then
+    if git push -q -d $1 $2 >/dev/null; then
+      printf 'delete-remote\t%s\t%s\n' "$1" "$2"
+    else
+      failed=1
+    fi
   else
     git push -d $1 $2 >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-      if [ $porcelain -eq 1 ]; then
-        printf 'delete-remote\t%s\t%s\n' "$1" "$2"
-      else
-        echo "Deleted branch $2 (on $1)."
-      fi
+      echo "Deleted branch $2 (on $1)."
     fi
   fi
 }
@@ -142,7 +144,11 @@ remove_local_branch() {
       echo "$1 will be deleted."
     fi
   elif [ $porcelain -eq 1 ]; then
-    git branch -D $1 >/dev/null && printf 'delete\t%s\n' "$1"
+    if git branch -D $1 >/dev/null; then
+      printf 'delete\t%s\n' "$1"
+    else
+      failed=1
+    fi
   else
     git branch -D $1
   fi
@@ -150,13 +156,31 @@ remove_local_branch() {
 
 nothing_to_trim() {
   [ $porcelain -eq 1 ] || echo "$1"
-  exit 0
+  exit $failed
+}
+
+confirm() {
+  if [ $porcelain -eq 1 ] && [ $dry_run -eq 1 ]; then
+    return
+  fi
+
+  local choice
+  read -p "$1 " choice
+
+  case $(echo $choice | tr '[A-Z]' '[a-z]') in
+    y|yes) ;;
+    *)
+      [ $porcelain -eq 0 ] || die "Aborted: confirmation is required to remove branches."
+      exit
+      ;;
+  esac
 }
 
 
 # Defaults
 all=0
 dry_run=0
+failed=0
 merged=0
 porcelain=0
 pruned=0
@@ -207,13 +231,7 @@ fi
 
 # all
 if [ $all -eq 1 ]; then
-  while true; do
-    read -p "Are you sure you want to remove all branches? " choice
-    case $(echo $choice | tr '[A-Z]' '[a-z]') in
-      y|yes) break;;
-      *) exit;;
-    esac
-  done
+  confirm "Are you sure you want to remove all branches?"
 
   command='git branch'
   if [ $remote -eq 1 ]; then
@@ -401,13 +419,7 @@ fi
 
 # reset
 if [ -n "$reset" ]; then
-  while true; do
-    read -p "Are you sure you want to remove all local branches not on $reset? " choice
-    case $(echo $choice | tr '[A-Z]' '[a-z]') in
-      y|yes) break;;
-      *) exit;;
-    esac
-  done
+  confirm "Are you sure you want to remove all local branches not on $reset?"
 
   git fetch -p $reset > /dev/null 2>&1
 
@@ -432,4 +444,4 @@ if [ -n "$reset" ]; then
 fi
 
 
-exit 0
+exit $failed

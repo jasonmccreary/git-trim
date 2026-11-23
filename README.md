@@ -55,7 +55,9 @@ skip-worktree<TAB><branch><TAB><worktree path>
 
 For `skip-worktree`, the first two tabs separate the record type, branch name, and worktree path. The remaining text is the path and may contain tabs. Worktree paths containing newlines are unsupported.
 
-Nothing is printed when there are no branches to trim. For example, `git trim --squashed --dry-run --porcelain | grep -c '^delete'` counts the branches that would be deleted.
+Nothing is printed when there are no branches to trim. For example, `git trim --squashed --dry-run --porcelain | awk -F'\t' '$1 == "delete" {n++} END {print n+0}'` counts the local branches that would be deleted.
+
+With `--porcelain`, the exit status is nonzero if a deletion fails or if `--all` or `--reset` is not confirmed. Adding `--dry-run` skips the confirmation.
 
 ## Installation
 
