@@ -116,17 +116,14 @@ remove_remote_branch() {
     else
       echo "$2 will be deleted from $1."
     fi
-  elif [ $porcelain -eq 1 ]; then
-    if git push -q -d $1 $2 >/dev/null; then
+  elif git push -q -d $1 $2 >/dev/null; then
+    if [ $porcelain -eq 1 ]; then
       printf 'delete-remote\t%s\t%s\n' "$1" "$2"
     else
-      failed=1
-    fi
-  else
-    git push -d $1 $2 >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
       echo "Deleted branch $2 (on $1)."
     fi
+  else
+    failed=1
   fi
 }
 
@@ -162,7 +159,7 @@ remove_local_branch() {
       failed=1
     fi
   else
-    git branch -D $1
+    git branch -D $1 || failed=1
   fi
 }
 

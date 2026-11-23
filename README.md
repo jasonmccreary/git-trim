@@ -57,7 +57,7 @@ For `skip-worktree`, the first two tabs separate the record type, branch name, a
 
 Nothing is printed when there are no branches to trim. For example, `git trim --squashed --dry-run --porcelain | awk -F'\t' '$1 == "delete" {n++} END {print n+0}'` counts the local branches that would be deleted.
 
-With `--porcelain`, the exit status is nonzero if a deletion fails or if `--all` or `--reset` is not confirmed. Adding `--dry-run` skips the confirmation.
+The exit status is nonzero if a deletion fails. With `--porcelain`, it is also nonzero if `--all` or `--reset` is not confirmed, and adding `--dry-run` skips the confirmation.
 
 ## Installation
 

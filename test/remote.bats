@@ -331,3 +331,53 @@ old will be deleted."
   refute_branch elsewhere
   assert_remote_branch elsewhere "$TEST_ROOT/upstream.git"
 }
+
+# Failures
+@test "a failed remote deletion reports the error and exits nonzero" {
+  merged_branch done
+  push_branch done
+  git remote set-url --push origin "$TEST_ROOT/missing.git"
+
+  run -1 --separate-stderr git trim --merged --remote
+
+  assert_output ""
+  [ -n "$stderr" ]
+  assert_remote_branch done
+}
+
+@test "a failed remote deletion does not stop remaining deletions" {
+  merged_branch blocked
+  merged_branch done
+  git push -q origin blocked done
+  mkdir -p "$ORIGIN/hooks"
+  printf '#!/bin/sh\n[ "$1" != refs/heads/blocked ]\n' > "$ORIGIN/hooks/update"
+  chmod +x "$ORIGIN/hooks/update"
+
+  run -1 --separate-stderr git trim --merged --remote
+
+  assert_output "Deleted branch done (on origin)."
+  [ -n "$stderr" ]
+  assert_remote_branch blocked
+  refute_remote_branch done
+}
+
+@test "a successful remote deletion keeps stderr quiet" {
+  merged_branch done
+  push_branch done
+
+  run -0 --separate-stderr git trim --merged --remote
+
+  assert_output "Deleted branch done (on origin)."
+  [ -z "$stderr" ]
+}
+
+@test "a failed local deletion reports the error and exits nonzero" {
+  merged_branch done
+  touch .git/refs/heads/done.lock
+
+  run -1 --separate-stderr git trim --merged
+
+  rm .git/refs/heads/done.lock
+  [ -n "$stderr" ]
+  assert_branch done
+}
