@@ -39,7 +39,7 @@ Of course, you may combine these options where appropriate. For example, `git tr
 
 There are two additional options which may also be combined with the options above: `--tracked` and `--remote`.
 
-When the `--tracked` (or `-t`) option is used, the remote tracking branch is also removed. For example, `git trim --merged --tracked` will remove local branches merged into the current branch, and remove the remote branch it's tracking (if any).
+When the `--tracked` (or `-t`) option is used, the remote tracking branch is also removed. For example, `git trim --merged --tracked` will remove local branches merged into the current branch, and remove the remote branch it's tracking (if any). The `--reset` option never removes remote branches, even with `--tracked`.
 
 When the `--remote` (or `-r`) option is used, `git trim` will remove remote branches instead of local branches. For example, `git trim --stale --remote` will remove remote branches without commits in the last 3 months (stale local branches will not be removed).
 

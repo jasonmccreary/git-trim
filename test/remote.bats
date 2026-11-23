@@ -252,7 +252,6 @@ load test_helper
 }
 
 @test "--stale --tracked removes the local and remote branch" {
-  known_bug "--stale ignores --tracked"
   stale_branch old
   push_branch old
 
@@ -260,4 +259,38 @@ load test_helper
 
   refute_branch old
   refute_remote_branch old
+}
+
+@test "--stale --tracked keeps the remote branch of a skipped worktree branch" {
+  stale_branch old
+  push_branch old
+  checkout_in_worktree old
+
+  run -0 git trim --stale --tracked
+
+  assert_branch old
+  assert_remote_branch old
+}
+
+@test "--stale --tracked --dry-run lists both branches without removing them" {
+  stale_branch old
+  push_branch old
+
+  run -0 git trim --stale --tracked --dry-run
+
+  assert_output "old will be deleted from origin.
+old will be deleted."
+  assert_branch old
+  assert_remote_branch old
+}
+
+@test "--reset --tracked leaves remote branches in place" {
+  add_remote upstream
+  local_branch elsewhere
+  push_branch elsewhere upstream
+
+  run -0 answer y --reset --tracked
+
+  refute_branch elsewhere
+  assert_remote_branch elsewhere "$TEST_ROOT/upstream.git"
 }

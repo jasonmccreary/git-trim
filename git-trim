@@ -397,6 +397,11 @@ if [ $stale -eq 1 ]; then
       remove_remote_branch ${branch%%/*} ${branch#*/}
     else
       skip_worktree_branch $branch && continue
+
+      if [ $tracked -eq 1 ]; then
+        remove_tracking_branch $branch
+      fi
+
       remove_local_branch $branch
     fi
   done
