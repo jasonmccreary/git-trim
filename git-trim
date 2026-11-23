@@ -256,11 +256,12 @@ if [ $all -eq 1 ]; then
       fi
     else
       skip_worktree_branch $branch && continue
-      remove_local_branch $branch
 
       if [ $tracked -eq 1 ]; then
         remove_tracking_branch $branch
       fi
+
+      remove_local_branch $branch
     fi
   done
 fi

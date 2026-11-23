@@ -222,13 +222,33 @@ load test_helper
 }
 
 @test "--all --tracked removes the local and remote branch" {
-  known_bug "--all deletes the branch config before reading its upstream"
   tracked_branch live
 
   run -0 answer y --all --tracked
 
   refute_branch live
   refute_remote_branch live
+}
+
+@test "--all --tracked removes what its dry run reported" {
+  tracked_branch live
+
+  run -0 answer y --all --tracked --dry-run --porcelain
+  local preview=$output
+
+  run -0 answer y --all --tracked --porcelain
+
+  assert_output "$preview"
+}
+
+@test "--all --tracked keeps the remote branch of a skipped worktree branch" {
+  tracked_branch live
+  checkout_in_worktree live
+
+  run -0 answer y --all --tracked
+
+  assert_branch live
+  assert_remote_branch live
 }
 
 @test "--stale --tracked removes the local and remote branch" {
