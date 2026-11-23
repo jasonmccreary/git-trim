@@ -93,8 +93,10 @@ load test_helper
 }
 
 @test "-h lists every option" {
-  run -129 git-trim -h
+  run git-trim -h
 
+  # The exit status of -h depends on the version of Git
+  [ "$status" -eq 0 ] || [ "$status" -eq 129 ]
   assert_output_contains "git trim [options]"
   for option in --all --dry-run --porcelain --merged --pruned --remote "reset[=" --stale --squashed --tracked --untracked; do
     assert_output_contains "$option"
