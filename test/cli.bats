@@ -32,6 +32,51 @@ load test_helper
   refute_branch gone
 }
 
+@test "repeating --dry-run still defaults to pruned" {
+  gone_branch gone
+
+  run -0 git trim --dry-run --dry-run
+
+  assert_output "gone will be deleted."
+  assert_branch gone
+}
+
+@test "repeating --porcelain still defaults to pruned" {
+  gone_branch gone
+
+  run -0 git trim --porcelain --porcelain
+
+  assert_output "$(printf 'delete\tgone')"
+  refute_branch gone
+}
+
+@test "repeating mixed output flags still defaults to pruned" {
+  gone_branch gone
+
+  run -0 git trim --dry-run --porcelain --dry-run
+
+  assert_output "$(printf 'delete\tgone')"
+  assert_branch gone
+}
+
+@test "--remote alone does not default to pruned" {
+  gone_branch gone
+
+  run -0 git trim --remote
+
+  assert_output ""
+  assert_branch gone
+}
+
+@test "--tracked alone does not default to pruned" {
+  gone_branch gone
+
+  run -0 git trim --tracked
+
+  assert_output ""
+  assert_branch gone
+}
+
 @test "choosing a mode replaces the default pruned mode" {
   gone_branch gone
   merged_branch done

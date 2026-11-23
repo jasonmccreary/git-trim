@@ -225,14 +225,14 @@ while [ $# != 0 ]; do
     --remote) remote=1;;
     --reset=*) reset="${1#*=}";;
     --reset) reset='origin';;
-    --dry-run) dry_run=1;;
-    --porcelain) porcelain=1;;
+    --dry-run) dry_run=1; options=$((options - 1));;
+    --porcelain) porcelain=1; options=$((options - 1));;
     --) ;;
   esac
   shift
 done
 
-if [[ $options -eq $((1 + dry_run + porcelain)) ]]; then
+if [ $options -eq 1 ]; then
   pruned=1
 fi
 
