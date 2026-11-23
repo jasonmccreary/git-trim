@@ -24,5 +24,11 @@
   "bin": {
     "git-trim": "git-trim"
   },
-  "dependencies": {}
+  "scripts": {
+    "test": "bats test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "bats": "1.13.0"
+  }
 }

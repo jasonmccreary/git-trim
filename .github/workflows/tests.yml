@@ -1,0 +1,31 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Use the system bash on macOS
+        if: runner.os == 'macOS'
+        run: echo /bin >> "$GITHUB_PATH"
+      - name: Show tool versions
+        run: |
+          bash --version | head -1
+          git --version
+      - run: npm install
+      - run: npm test
