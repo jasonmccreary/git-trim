@@ -51,8 +51,11 @@ filter_branches() {
         fi
       done
 
+      local name="${branch#remotes/}"
+      name="${name#*/}"
+
       for excluded in "${exclude[@]}"; do
-        if [[ "$branch" == */$excluded ]]; then
+        if [[ "$name" == $excluded ]]; then
           continue 2
         fi
       done

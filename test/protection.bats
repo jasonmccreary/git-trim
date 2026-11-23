@@ -289,13 +289,37 @@ load test_helper
 }
 
 @test "gt.exclude matches whole remote branch names" {
-  known_bug "remote exclusions match any path suffix"
   git config gt.exclude "dev"
+  merged_branch dev
   merged_branch feature/dev
-  push_branch feature/dev
+  git push -q origin dev feature/dev
 
   run -0 git trim --merged --remote
 
+  assert_remote_branch dev
+  refute_remote_branch feature/dev
+}
+
+@test "gt.exclude globs match from the start of remote branch names" {
+  git config gt.exclude "save/*"
+  merged_branch save/one
+  merged_branch feature/save/one
+  git push -q origin save/one feature/save/one
+
+  run -0 git trim --merged --remote
+
+  assert_remote_branch save/one
+  refute_remote_branch feature/save/one
+}
+
+@test "gt.exclude matches whole remote branch names with --all" {
+  git config gt.exclude "dev"
+  tracked_branch dev
+  tracked_branch feature/dev
+
+  run -0 answer y --all --remote
+
+  assert_remote_branch dev
   refute_remote_branch feature/dev
 }
 
