@@ -80,6 +80,15 @@ filter_branches() {
   echo "${branches[*]}"
 }
 
+without_current_branch() {
+  local branch name
+
+  for branch in "$@"; do
+    name="${branch#remotes/}"
+    [ "${name#*/}" == "$current_branch" ] || echo "$branch"
+  done
+}
+
 prune_all() {
   git fetch --all -p > /dev/null 2>&1
 }
@@ -240,7 +249,7 @@ if [ $all -eq 1 ]; then
 
   branches=( $($command | grep -v -e '^\*' -e ' -> ' | cut -c3-) )
   if [ $remote -eq 1 ]; then
-    branches=( $(printf '%s\n' "${branches[@]}" | grep -vF "/$current_branch") )
+    branches=( $(without_current_branch "${branches[@]}") )
   fi
   branches=( $(filter_branches "${branches[@]}") )
 
@@ -277,7 +286,7 @@ if [ $merged -eq 1 ]; then
 
   branches=( $($command --merged | grep -v -e '^\*' -e ' -> ' | cut -c3-) )
   if [ $remote -eq 1 ]; then
-    branches=( $(printf '%s\n' "${branches[@]}" | grep -vF "/$current_branch") )
+    branches=( $(without_current_branch "${branches[@]}") )
   fi
   branches=( $(filter_branches "${branches[@]}") )
 
@@ -377,14 +386,13 @@ if [ $stale -eq 1 ]; then
   fi
 
   all_branches=( $($command | grep -v -e '^\*' -e ' -> ' | cut -c3-) )
+  if [ $remote -eq 1 ]; then
+    all_branches=( $(without_current_branch "${all_branches[@]}") )
+  fi
   all_branches=( $(filter_branches "${all_branches[@]}") )
   branches=()
 
   for branch in "${all_branches[@]}"; do
-    if [ $remote -eq 1 ] && [ "${branch#*/}" == "$current_branch" ]; then
-      continue
-    fi
-
     [[ $(git log -1 -s --since="3 months ago" $branch) ]] || branches+=($branch)
   done
 

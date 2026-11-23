@@ -76,13 +76,50 @@ load test_helper
 }
 
 @test "--merged --remote matches the current branch exactly" {
-  known_bug "the current branch is filtered by substring"
   merged_branch main-old
   push_branch main-old
 
   run -0 git trim --merged --remote
 
   refute_remote_branch main-old
+}
+
+@test "--merged --remote removes a branch ending in the current name" {
+  merged_branch feature/main
+  push_branch feature/main
+
+  run -0 git trim --merged --remote
+
+  refute_remote_branch feature/main
+}
+
+@test "--merged --remote works from a detached HEAD" {
+  merged_branch done
+  push_branch done
+  git switch -q --detach
+
+  run -0 git trim --merged --remote
+
+  refute_remote_branch done
+  assert_remote_branch main
+}
+
+@test "--all --remote matches the current branch exactly" {
+  tracked_branch main-old
+
+  run -0 answer y --all --remote
+
+  refute_remote_branch main-old
+  assert_remote_branch main
+}
+
+@test "--all --remote keeps the current branch on the remote" {
+  tracked_branch current
+  git switch -q current
+
+  run -0 answer y --all --remote
+
+  assert_remote_branch current
 }
 
 @test "--stale --remote removes stale remote branches only" {
