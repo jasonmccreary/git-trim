@@ -156,7 +156,6 @@ remove_local_branch() {
 
 nothing_to_trim() {
   [ $porcelain -eq 1 ] || echo "$1"
-  exit $failed
 }
 
 confirm() {

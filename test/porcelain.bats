@@ -90,6 +90,15 @@ count_deletes() {
   assert_output "$(printf 'delete\tdone\ndelete\told')"
 }
 
+@test "an empty mode does not stop later modes" {
+  stale_branch old
+
+  run -0 git trim --merged --stale --porcelain
+
+  assert_output "$(printf 'delete\told')"
+  refute_branch old
+}
+
 @test "human-readable messages are never printed" {
   merged_branch done
   merged_branch in-worktree

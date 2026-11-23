@@ -338,10 +338,26 @@ load test_helper
 }
 
 @test "a mode with nothing to trim does not stop later modes" {
-  known_bug "each mode exits the script when it finds no branches"
   stale_branch old
 
   run -0 git trim --merged --stale
 
+  assert_output_contains "There are no merged branches to trim."
+  assert_output_contains "Deleted branch old"
   refute_branch old
+}
+
+@test "every mode with nothing to trim reports it" {
+  run -0 git trim --merged --stale
+
+  assert_output "There are no merged branches to trim.
+There are no stale branches to trim."
+}
+
+@test "a confirmation still runs after an empty mode" {
+  local_branch wip
+
+  run -0 answer y --merged --reset
+
+  refute_branch wip
 }
