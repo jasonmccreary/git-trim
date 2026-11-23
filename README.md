@@ -117,6 +117,27 @@ If you want `git trim` to be able to remove the default branch, you may set the 
 git config gt.protectDefault false
 ```
 
+## Reminders after pulling
+A `post-merge` hook can tell you when a pull leaves branches ready to trim. It runs `git trim` in dry-run mode, so nothing is removed:
+
+```sh
+#!/bin/sh
+count=$(git trim --squashed --dry-run --porcelain | awk -F'\t' '$1 == "delete" || $1 == "skip-worktree" {n++} END {print n+0}')
+if [ "$count" -gt 0 ]; then
+  echo "git-trim: $count branch(es) can be trimmed. Run \`git trim --squashed --dry-run\` to see them." >&2
+fi
+exit 0
+```
+
+Branches checked out in another worktree are counted too, so the reminder also shows up when a worktree is ready to be removed.
+
+To use it in one repository, save it as `.git/hooks/post-merge` and make it executable. With Git 2.54 or later, you can instead save it anywhere and enable it for every repository:
+
+```sh
+git config --global hook.git-trim.event post-merge
+git config --global hook.git-trim.command ~/path/to/git-trim-reminder
+```
+
 ## Disclaimer
 Some of the options in this command remove branches without warning. Once a branch is removed, it might not be recoverable. You are solely responsible when running this command.
 
