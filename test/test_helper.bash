@@ -26,12 +26,6 @@ setup() {
   git remote set-head origin main >/dev/null
 }
 
-# Marks a test for behavior the README promises but the code does not yet
-# deliver. Set RUN_KNOWN_BUGS=1 to run these tests and see them fail.
-known_bug() {
-  [ -n "${RUN_KNOWN_BUGS:-}" ] || skip "Known bug: $1"
-}
-
 
 # Fixtures
 commit_file() {
